@@ -269,7 +269,7 @@ PLAY_BINARIES=${BASE_DIR}/${PLAY_DIR}/org.scala-ide.play2.update-site/target/sit
 SCALASEARCH_BINARIES=${BASE_DIR}/${SCALASEARCH_DIR}/org.scala.tools.eclipse.search.update-site/target/site/
 SDK_BINARIES=${BASE_DIR}/${TYPESAFE_IDE_DIR}/org.scala-ide.product/target/repository/
 
-if $SIGN_BUILD
+if [[ $SIGN_BUILD ]]
 then
     MAVEN_SIGN_ARGS=" -Djarsigner.storepass=${KEYSTORE_PASS} -Djarsigner.keypass=${KEYSTORE_PASS} -Djarsigner.keystore=/${KEYSTORE_PATH} "
 fi
@@ -403,7 +403,7 @@ function build_ide()
 
     cd ${SCALAIDE_DIR}
 
-    if $SIGN_BUILD
+    if [[ $SIGN_BUILD ]]
     then
       export SET_VERSIONS="true"
     fi
@@ -520,7 +520,7 @@ function prepare_nextBase()
     mkdir -p ${NEXT_BASE}
 
     p2_merge ${SCALA_IDE_BINARIES} ${NEXT_BASE}
-    if $BUILD_PLUGINS
+    if [[ $BUILD_PLUGINS ]]
     then
         p2_merge ${SDK_BINARIES} ${NEXT_BASE}
     fi
@@ -597,9 +597,10 @@ function exist_branch_in_repo()
     BRANCH=$1
     GIT_REPO=$2
 
-    ESCAPED_BRANCH=`echo $BRANCH | sed -e 's/[\/&]/\\\&/g'`
+    ESCAPED_BRANCH=$($BRANCH/\/&/\\\&/)
+    debug $ESCAPED_BRANCH
     # Checks if it exists a remote branch that matches ESCAPED_BRANCH
-    REMOTES=`$GIT ls-remote $GIT_REPO | awk '/'$ESCAPED_BRANCH'/ {print $2}'`
+    REMOTES=`$GIT ls-remote --heads $GIT_REPO | awk '/'$ESCAPED_BRANCH'/ {print $2}'`
     if [[ "$REMOTES" ]]; then
         return 0
     else
@@ -675,7 +676,7 @@ function checkout_git_repo()
 #                          SIGNING                            #
 ###############################################################
 
-if $SIGN_BUILD
+if [[ $SIGN_BUILD ]]
 then
     assert_executable_in_path ${KEYTOOL} # Check that keytool executable is available
     assert_version_tag_not_empty
@@ -854,7 +855,7 @@ echo -e "Sbt               : ${SBT_DIR}, \t\tbranch: ${SBT_BRANCH}, repo: ${SBT_
 echo -e "Scalariform       : ${SCALARIFORM_DIR}, \tbranch: ${SCALARIFORM_BRANCH}, repo: ${SCALARIFORM_GIT_REPO}"
 echo -e "Scala-refactoring : ${SCALA_REFACTORING_DIR}, \tbranch: ${SCALA_REFACTORING_BRANCH}, repo: ${SCALA_REFACTORING_GIT_REPO}"
 echo -e "Scala IDE         : ${SCALAIDE_DIR}, \t\tbranch: ${SCALA_IDE_BRANCH}, repo: ${SCALA_IDE_GIT_REPO}"
-if $BUILD_PLUGINS
+if [[ $BUILD_PLUGINS ]]
 then
     echo -e "Worksheet         : ${WORKSHEET_DIR}, \tbranch: ${WORKSHEET_BRANCH}, repo: ${WORKSHEET_GIT_REPO}"
     echo -e "Play plugin       : ${PLAY_DIR}, \tbranch: ${PLAY_BRANCH}, repo: ${PLAY_GIT_REPO}"
@@ -869,7 +870,7 @@ checkout_git_repo ${SCALA_IDE_GIT_REPO} ${SCALAIDE_DIR} ${SCALA_IDE_BRANCH}
 checkout_git_repo ${SCALARIFORM_GIT_REPO} ${SCALARIFORM_DIR} ${SCALARIFORM_BRANCH}
 checkout_git_repo ${SCALA_REFACTORING_GIT_REPO} ${SCALA_REFACTORING_DIR} ${SCALA_REFACTORING_BRANCH}
 
-if $BUILD_PLUGINS
+if [[ $BUILD_PLUGINS ]]
 then
     if [ $WORKSHEET_BUILDIT ]; then
         checkout_git_repo ${WORKSHEET_GIT_REPO} ${WORKSHEET_DIR} ${WORKSHEET_BRANCH}
@@ -891,12 +892,12 @@ build_refactoring
 build_scalariform
 build_ide
 
-if $SIGN_BUILD
+if [[ $SIGN_BUILD ]]
 then
     sign_ide
 fi
 
-if $BUILD_PLUGINS
+if [[ $BUILD_PLUGINS ]]
 then
     build_plugins
 fi
@@ -919,7 +920,7 @@ else
             debug "Not publishing base"
     esac
 
-    if $BUILD_PLUGINS
+    if [[ $BUILD_PLUGINS ]]
     then
         if [ $WORKSHEET_BUILDIT ]; then
             publish_plugin "releases" $ecosystem_platform ${worksheet_eclipse_profile} ${WORKSHEET_BINARIES} worksheet
