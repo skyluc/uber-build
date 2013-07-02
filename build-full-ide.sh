@@ -35,11 +35,11 @@
 : ${REFACTORING_MAVEN_ARGS:=""}   # Pass some maven argument to the scala-refactoring build, e.g. -Dmaven.test.skip=true
 
 : ${ECLIPSE_PLATFORM:=}           # Pass the Eclipse platform (e.g., "indigo", or "juno")
-: ${BUILD_PLUGINS:=false}         # Should we build worksheet, play plugin and the Typesafe IDE product as well.
+: ${BUILD_PLUGINS:=}         # Should we build worksheet, play plugin and the Typesafe IDE product as well.
 
 : ${WORKSHEET_BUILDIT:=}          # whether to build the Worksheet plugin
 : ${WORKSHEET_GIT_REPO:=git://github.com/scala-ide/scala-worksheet.git} # Git repostory to use to build Scala Worksheet
-: ${WORKSHEET_BRANCH:=}           # Worksheet branch/tag to build
+: ${WORKSHEET_BRANCH:=""}           # Worksheet branch/tag to build
 : ${WORKSHEET_VERSION_TAG:=v}     # Tag to add to the worksheet version
 
 : ${PLAY_BUILDIT:=}               # whether to build the Play plugin
@@ -482,10 +482,15 @@ function create_merged_update_site()
 
     # Merge the Scala IDE and Worksheet update-sites in $TYPESAFE_IDE_MERGE_ECOSYSTEM_DIR
     p2_merge ${SCALA_IDE_BINARIES} ${BASE_DIR}/${TYPESAFE_IDE_MERGE_ECOSYSTEM_DIR}
-    p2_merge ${WORKSHEET_BINARIES} ${BASE_DIR}/${TYPESAFE_IDE_MERGE_ECOSYSTEM_DIR}
-    p2_merge ${PLAY_BINARIES} ${BASE_DIR}/${TYPESAFE_IDE_MERGE_ECOSYSTEM_DIR}
-
-    p2_merge ${SCALASEARCH_BINARIES} ${BASE_DIR}/${TYPESAFE_IDE_MERGE_ECOSYSTEM_DIR}
+    if [ $WORKSHEET_BUILDIT ]; then
+        p2_merge ${WORKSHEET_BINARIES} ${BASE_DIR}/${TYPESAFE_IDE_MERGE_ECOSYSTEM_DIR}
+    fi
+    if [ $PLAY_BUILDIT ]; then
+        p2_merge ${PLAY_BINARIES} ${BASE_DIR}/${TYPESAFE_IDE_MERGE_ECOSYSTEM_DIR}
+    fi
+    if [ SCALASEARCH_BUILDIT ]; then
+        p2_merge ${SCALASEARCH_BINARIES} ${BASE_DIR}/${TYPESAFE_IDE_MERGE_ECOSYSTEM_DIR}
+    fi
 
     cd ${BASE_DIR}
 }
@@ -608,7 +613,7 @@ function exist_branch_in_repo_verbose()
     GIT_REPO=$2
 
     debug "Checking if branch $BRANCH exists in git repo ${GIT_REPO}..."
-    if exist_branch_in_repo $BRANCH $GIT_REPO
+    if exist_branch_in_repo $@
     then
         debug "Branch found!"
         return 0
@@ -620,9 +625,7 @@ function exist_branch_in_repo_verbose()
 
 function assert_branch_in_repo_verbose()
 {
-    BRANCH=$1
-    GIT_REPO=$2
-    (exist_branch_in_repo_verbose $BRANCH $GIT_REPO) || abort
+    (exist_branch_in_repo_verbose $@) || abort
 }
 
 # Check that there are no uncommitted changes in $1
@@ -744,34 +747,34 @@ fi
 if [[ ( -z "$SCALA_IDE_BRANCH" ) ]]; then
     read -p "What branch/tag should I use for building the ${SCALAIDE_DIR}: " scala_ide_branch;
     SCALA_IDE_BRANCH=$scala_ide_branch
-    assert_branch_in_repo_verbose $SCALA_IDE_BRANCH $SCALA_IDE_GIT_REPO
+    assert_branch_in_repo_verbose ${SCALA_IDE_BRANCH} ${SCALA_IDE_GIT_REPO}
 fi
 
 if [[ ( -z "$SCALARIFORM_BRANCH" ) ]]; then
     read -p "What branch/tag should I use for building ${SCALARIFORM_DIR}: " scalariform_branch;
     SCALARIFORM_BRANCH=$scalariform_branch
-    assert_branch_in_repo_verbose $SCALARIFORM_BRANCH $SCALARIFORM_GIT_REPO
+    assert_branch_in_repo_verbose ${SCALARIFORM_BRANCH} ${SCALARIFORM_GIT_REPO}
 fi
 
 if [[ ( -z "$SCALA_REFACTORING_BRANCH" ) ]]; then
     read -p "What branch/tag should I use for building ${SCALA_REFACTORING_DIR}: " scala_refactoring_branch;
     SCALA_REFACTORING_BRANCH=$scala_refactoring_branch
-    assert_branch_in_repo_verbose $SCALA_REFACTORING_BRANCH $SCALA_REFACTORING_GIT_REPO
+    assert_branch_in_repo_verbose ${SCALA_REFACTORING_BRANCH} ${SCALA_REFACTORING_GIT_REPO}
 fi
 
 if [[ ( -z "$SBINARY_BRANCH" ) ]]; then
     read -p "What branch/tag should I use for building ${SBINARY_DIR}: " sbinary_branch;
     SBINARY_BRANCH=$sbinary_branch
-    assert_branch_in_repo_verbose $SBINARY_BRANCH $SBINARY_GIT_REPO
+    assert_branch_in_repo_verbose ${SBINARY_BRANCH} ${SBINARY_GIT_REPO}
 fi
 
 if [[ ( -z "$SBT_BRANCH" ) ]]; then
     read -p "What branch/tag should I use for building ${SBT_DIR}: " sbt_branch;
     SBT_BRANCH=$sbt_branch
-    assert_branch_in_repo_verbose $SBT_BRANCH $SBT_GIT_REPO
+    assert_branch_in_repo_verbose ${SBT_BRANCH} ${SBT_GIT_REPO}
 fi
 
-if $BUILD_PLUGINS && [[ -z "$WORKSHEET_BRANCH" ]]
+if [[ $BUILD_PLUGINS &&  -z "$WORKSHEET_BRANCH" ]]
 then
     read -p "Do you want to build the Worksheet plugin ? [y/N]" response
     if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]
@@ -779,16 +782,16 @@ then
         WORKSHEET_BUILDIT="true"
         read -p "What branch/tag should I use for building ${WORKSHEET_DIR}: " worksheet_branch;
         WORKSHEET_BRANCH=$worksheet_branch
-        assert_branch_in_repo_verbose $WORKSHEET_BRANCH $WORKSHEET_GIT_REPO
+        assert_branch_in_repo_verbose ${WORKSHEET_BRANCH} ${WORKSHEET_GIT_REPO}
     fi
 else
     if [ $BUILD_PLUGINS ]; then
         WORKSHEET_BUILDIT="true"
-        assert_branch_in_repo_verbose $WORKSHEET_BRANCH $WORKSHEET_GIT_REPO
+        assert_branch_in_repo_verbose ${WORKSHEET_BRANCH} ${WORKSHEET_GIT_REPO}
     fi
 fi
 
-if $BUILD_PLUGINS && [[ -z "$PLAY_BRANCH" ]]
+if [[ $BUILD_PLUGINS &&  -z "$PLAY_BRANCH" ]]
 then
     read -p "Do you want to build the Play plugin ? [y/N]" response
     if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]
@@ -796,16 +799,16 @@ then
         PLAY_BUILDIT="true"
         read -p "What branch/tag should I use for building ${PLAY_DIR}: " play_branch;
         PLAY_BRANCH=$play_branch
-        assert_branch_in_repo_verbose $PLAY_BRANCH $PLAY_GIT_REPO
+        assert_branch_in_repo_verbose ${PLAY_BRANCH} ${PLAY_GIT_REPO}
     fi
 else
     if [ $BUILD_PLUGINS ]; then
         PLAY_BUILDIT="true"
-        assert_branch_in_repo_verbose $PLAY_BRANCH $PLAY_GIT_REPO
+        assert_branch_in_repo_verbose ${PLAY_BRANCH} ${PLAY_GIT_REPO}
     fi
 fi
 
-if $BUILD_PLUGINS && [[ -z "$SCALASEARCH_BRANCH" ]]
+if [[ $BUILD_PLUGINS &&  -z "$SCALASEARCH_BRANCH" ]]
 then
     read -p "Do you want to build the ScalaSearch plugin ? [y/N]" response
     if [[ $response =~ ^([yY][eE][sS]|[yY])$ ]]
@@ -813,12 +816,12 @@ then
         SCALASEARCH_BUILDIT="true"
         read -p "What branch/tag should I use for building ${SCALASEARCH_DIR}: " scalasearch_branch;
         SCALASEARCH_BRANCH=$scalasearch_branch
-        assert_branch_in_repo_verbose $SCALASEARCH_BRANCH $SCALASEARCH_GIT_REPO
+        assert_branch_in_repo_verbose ${SCALASEARCH_BRANCH} ${SCALASEARCH_GIT_REPO}
     fi
 else
     if [ $BUILD_PLUGINS ]; then
         SCALASEARCH_BUILDIT="true"
-        assert_branch_in_repo_verbose $SCALASEARCH_BRANCH $SCALASEARCH_GIT_REPO
+        assert_branch_in_repo_verbose ${SCALASEARCH_BRANCH} ${SCALASEARCH_GIT_REPO}
     fi
 fi
 
