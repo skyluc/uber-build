@@ -488,7 +488,7 @@ function create_merged_update_site()
     if [ $PLAY_BUILDIT ]; then
         p2_merge ${PLAY_BINARIES} ${BASE_DIR}/${TYPESAFE_IDE_MERGE_ECOSYSTEM_DIR}
     fi
-    if [ SCALASEARCH_BUILDIT ]; then
+    if [ $SCALASEARCH_BUILDIT ]; then
         p2_merge ${SCALASEARCH_BINARIES} ${BASE_DIR}/${TYPESAFE_IDE_MERGE_ECOSYSTEM_DIR}
     fi
 
