@@ -2,6 +2,8 @@
 
 # If you wish to skip tests when building scala-refactoring, you can do so by setting the value of REFACTORING_MAVEN_ARGS=-Dmaven.test.skip=true, and pass it to the script.
 
+set -x
+
 ###############################################################
 #               Overridable Environment Methods               #
 ###############################################################
@@ -597,10 +599,10 @@ function exist_branch_in_repo()
     BRANCH=$1
     GIT_REPO=$2
 
-    ESCAPED_BRANCH=$($BRANCH/\/&/\\\&/)
+    ESCAPED_BRANCH=${BRANCH/\/&/\\\&}
     debug $ESCAPED_BRANCH
     # Checks if it exists a remote branch that matches ESCAPED_BRANCH
-    REMOTES=`$GIT ls-remote --heads $GIT_REPO | awk '/'$ESCAPED_BRANCH'/ {print $2}'`
+    REMOTES=`$GIT ls-remote --heads --tags $GIT_REPO | awk '/\/'$ESCAPED_BRANCH'$/ {print $2}'`
     if [[ "$REMOTES" ]]; then
         return 0
     else
