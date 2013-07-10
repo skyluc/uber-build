@@ -925,13 +925,13 @@ else
     if [[ $BUILD_PLUGINS ]]
     then
         if [ $WORKSHEET_BUILDIT ]; then
-            publish_plugin "releases" $ecosystem_platform ${worksheet_eclipse_profile} ${WORKSHEET_BINARIES} worksheet
+            publish_plugin "releases" $ecosystem_platform ${worksheet_scala_profile} ${WORKSHEET_BINARIES} worksheet
         fi
         if [ $PLAY_BUILDIT ]; then
-            publish_plugin "releases" $ecosystem_platform ${play_eclipse_profile} ${PLAY_BINARIES} scala-ide-play2
+            publish_plugin "releases" $ecosystem_platform ${play_scala_profile} ${PLAY_BINARIES} scala-ide-play2
         fi
         if [ $SCALASEARCH_BUILDIT ]; then
-            publish_plugin "releases" $ecosystem_platform ${scalasearch_eclipse_profile} ${SCALASEARCH_BINARIES} scala-search
+            publish_plugin "releases" $ecosystem_platform ${scalasearch_scala_profile} ${SCALASEARCH_BINARIES} scala-search
         fi
     fi
 fi
