@@ -449,7 +449,6 @@ function stepSetFlags () {
   RELEASE=false
   DRY_RUN=true
   VALIDATOR=false
-  USE_PROVIDED_MAVEN_TGZ=false
   SCALA_REBUILD=false
   SIGN_ARTIFACTS=false
   WORKSHEET_PLUGIN=false
@@ -476,14 +475,14 @@ function stepSetFlags () {
       ;;
     scala-pr-validator )
       VALIDATOR=true
-      USE_PROVIDED_MAVEN_TGZ=true
+      SCALA_REBUILD=false
       ;;
     scala-pr-rebuild )
       VALIDATOR=true
       SCALA_REBUILD=true
       ;;
     * )
-      missingParameterChoice "OPERATION" "release, release-dryrun, scala-pr-validator, scala-pr-rebuild"
+      missingParameterChoice "OPERATION" "release, release-dryrun, nightly, scala-pr-validator, scala-pr-rebuild"
       ;;
   esac
 
@@ -548,7 +547,7 @@ function stepCheckPrerequisites () {
   fi
 
 # ant is need to rebuild Scala
-  if ${VALIDATOR}
+  if ${SCALA_REBUILD}
   then
     if [ -n "${ANT}" ]
     then
@@ -614,7 +613,8 @@ function stepCheckConfiguration () {
   checkParameters "SCRIPT_DIR" "BUILD_DIR" "LOCAL_M2_REPO" "P2_CACHE_DIR"
 
 # configure maven here. Needed for some checks
-  MAVEN_ARGS=(-e -B -U "-Dmaven.repo.local=${LOCAL_M2_REPO}")
+# (preserve MAVEN_ARGS coming in from outside, so pr-scala-integrate-ide can pass in "-P pr-scala")
+  MAVEN_ARGS=($MAVEN_ARGS -e -B -U "-Dmaven.repo.local=${LOCAL_M2_REPO}")
 
   mkdir -p "${BUILD_DIR}"
 
@@ -731,40 +731,6 @@ function stepScala () {
     checkAvailability "org.scala-lang" "scala-compiler" "${FULL_SCALA_VERSION}"
     if [ $RES != 0 ]
     then
-        if ${USE_PROVIDED_MAVEN_TGZ}
-        then
-            if [ -f "${CURRENT_DIR}/maven.tgz" ]
-            then
-                cp "${CURRENT_DIR}/maven.tgz" ${TMP_DIR}
-                cd ${TMP_DIR}
-            else
-                error "Could not find maven.tgz file in ${CURRENT_DIR}."
-            fi
-        else
-            # the scala build is not available locally. check in scala-webapps.
-            HTTP_STATUS=$(curl --write-out %{http_code} --silent --output /dev/null "http://scala-webapps.epfl.ch/artifacts/${SCALA_GIT_HASH}/")
-            if [ ${HTTP_STATUS} == 200 ]
-            then
-                info "Deploying Scala version from scala-webapps"
-                cd $TMP_DIR
-                rm -rf *
-                wget "http://scala-webapps.epfl.ch/artifacts/${SCALA_GIT_HASH}/maven.tgz"
-            fi
-        fi
-
-        if [ -f $FILE maven.tgz ]
-        then
-            tar xf maven.tgz
-            cd latest
-            ${ANT_BIN} \
-                -Dmaven.version.number="${FULL_SCALA_VERSION}" \
-                -Dlocal.snapshot.repository="${LOCAL_M2_REPO}" \
-                -Dmaven.version.suffix="${SCALA_VERSION_SUFFIX}" \
-                deploy.local
-
-            checkNeeded "org.scala-lang" "scala-compiler" "${FULL_SCALA_VERSION}"
-        else
-
             if ! ${SCALA_REBUILD}
             then
                 error "Scala binaries with git hash ${SCALA_GIT_HASH} were not found on scala-webapps, nor maven.tgz was provided, and will not be rebuilt locally."
@@ -780,18 +746,17 @@ function stepScala () {
             git clean -fxd
             ${ANT_BIN} \
                 distpack-maven-opt \
+                -Dmaven.version.number="${FULL_SCALA_VERSION}" \
                 -Darchives.skipxz=true \
-                -Dlocal.snapshot.repository="${LOCAL_M2_REPO}" \
-                -Dversion.suffix="${SCALA_VERSION_SUFFIX}"
+                -Dlocal.snapshot.repository="${LOCAL_M2_REPO}"
 
             cd dists/maven/latest
             ${ANT_BIN} \
+                -Dmaven.version.number="${FULL_SCALA_VERSION}" \
                 -Dlocal.snapshot.repository="${LOCAL_M2_REPO}" \
-                -Dmaven.version.suffix="-${SCALA_VERSION_SUFFIX}" \
                 deploy.local
 
             checkNeeded "org.scala-lang" "scala-compiler" "${FULL_SCALA_VERSION}"
-        fi
     fi
     SCALA_UID=${SCALA_GIT_HASH}
   fi
@@ -1229,4 +1194,4 @@ fi
 # END
 ######
 
-printStep "Build succesful"
+printStep "Build successful"
