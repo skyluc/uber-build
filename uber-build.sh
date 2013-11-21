@@ -377,8 +377,8 @@ function stepCheckArguments () {
   fi
 
   CONFIG_FILE="$1"
-  ARG_GIT_HASH=$2
-  ARG_SCALA_VERSION=$3
+  ARG_SCALA_VERSION=$2
+  ARG_GIT_HASH=$3
 
   if [ ! -f "${CONFIG_FILE}" ]
   then
@@ -491,6 +491,7 @@ function stepSetFlags () {
       ;;
     scala-pr-validator )
       SCALA_VALIDATOR=true
+      SBT_REBUILD=true
       ;;
     scala-pr-rebuild )
       SCALA_VALIDATOR=true
@@ -633,7 +634,8 @@ function stepCheckConfiguration () {
   checkParameters "SCRIPT_DIR" "BUILD_DIR" "LOCAL_M2_REPO" "P2_CACHE_DIR"
 
 # configure maven here. Needed for some checks
-  MAVEN_ARGS=(-e -B -U "-Dmaven.repo.local=${LOCAL_M2_REPO}")
+# preserve MAVEN_ARGS coming in from outside
+  MAVEN_ARGS=(${MAVEN_ARGS} -e -B -U "-Dmaven.repo.local=${LOCAL_M2_REPO}")
 
   mkdir -p "${BUILD_DIR}"
 
@@ -747,6 +749,7 @@ function stepScala () {
   if ${SCALA_VALIDATOR}
   then
     FULL_SCALA_VERSION=${SCALA_VERSION}
+    SCALA_VERSIONS_PROPERTIES_PATH=${CURRENT_DIR}/versions.properties
   fi
 
   if ${SCALA_REBUILD}
