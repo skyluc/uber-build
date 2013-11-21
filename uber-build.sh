@@ -377,8 +377,8 @@ function stepCheckArguments () {
   fi
 
   CONFIG_FILE="$1"
-  ARG_SCALA_VERSION=$2
-  ARG_GIT_HASH=$3
+  ARG_GIT_HASH=$2
+  ARG_SCALA_VERSION=$3
 
   if [ ! -f "${CONFIG_FILE}" ]
   then
