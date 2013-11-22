@@ -651,6 +651,10 @@ function stepCheckConfiguration () {
   if ${SBT_REBUILD}
   then
     checkParameters "ZINC_BUILD_DIR" "ZINC_BUILD_GIT_REPO" "ZINC_BUILD_GIT_BRANCH"
+    if [ -n "${prRepoUrl}" ]
+    then
+      ZINC_BUILD_ARGS="-DprRepoUrl=${prRepoUrl}"
+    fi
   fi
 
   checkParameters "ECLIPSE_PLATFORM"
@@ -857,7 +861,7 @@ function stepZinc () {
       SCALA_VERSION="${FULL_SCALA_VERSION}" \
         PUBLISH_REPO="file://${LOCAL_M2_REPO}" \
         LOCAL_M2_REPO="${LOCAL_M2_REPO}" \
-        bin/dbuild sbt-on-${SHORT_SCALA_VERSION}.x
+        bin/dbuild ${ZINC_BUILD_ARGS} sbt-on-${SHORT_SCALA_VERSION}.x
 
       checkNeeded "com.typesafe.sbt" "incremental-compiler" "${FULL_SBT_VERSION}"
     fi
