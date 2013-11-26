@@ -811,7 +811,7 @@ function stepScala () {
 
   fi
 
-  if ${USE_SCALA_VERSIONS_PROPERTIES_FILE}
+  if ${SBT_REBUILD} && ${USE_SCALA_VERSIONS_PROPERTIES_FILE}
   then
     if [ ! -f "${SCALA_VERSIONS_PROPERTIES_PATH}" ]
     then
