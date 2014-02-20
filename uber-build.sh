@@ -774,16 +774,9 @@ function stepCheckConfiguration () {
 function stepScala () {
   printStep "Scala"
 
-# for releases, already existing Scala binaries are used.
-  if ${RELEASE}
-  then
-    FULL_SCALA_VERSION=${SCALA_VERSION}
-  fi
-
-# for Scala pr validation, custom build Scala binaries are used.
   if ${SCALA_VALIDATOR}
   then
-    FULL_SCALA_VERSION=${SCALA_VERSION}
+# for Scala pr validation, version.properties file is provided.
     SCALA_VERSIONS_PROPERTIES_PATH=${CURRENT_DIR}/versions.properties
   fi
 
@@ -840,6 +833,9 @@ function stepScala () {
 
     fi
 
+  else
+# already existing Scala binaries are used.
+    FULL_SCALA_VERSION=${SCALA_VERSION}
   fi
 
   if ${SBT_REBUILD} && ${USE_SCALA_VERSIONS_PROPERTIES_FILE}
@@ -861,15 +857,6 @@ function stepScala () {
 
 function stepZinc () {
   printStep "Zinc"
-
-
-# for releases, already existing sbt binaries are used.
-  if ${RELEASE}
-  then
-    FULL_SBT_VERSION="${SBT_VERSION}-on-${FULL_SCALA_VERSION}-for-IDE${ZINC_BUILD_VERSION_SUFFIX}"
-    IDE_M2_REPO="http://typesafe.artifactoryonline.com/typesafe/ide-${SHORT_SCALA_VERSION}"
-    checkNeeded "com.typesafe.sbt" "incremental-compiler" "${FULL_SBT_VERSION}" "${IDE_M2_REPO}"
-  fi
 
 # for Scala pr validation, custom build sbt binaries are used.
   if ${SBT_REBUILD}
@@ -895,6 +882,11 @@ function stepZinc () {
 
       checkNeeded "com.typesafe.sbt" "incremental-compiler" "${FULL_SBT_VERSION}"
     fi
+  else
+# already existing sbt binaries are used.
+    FULL_SBT_VERSION="${SBT_VERSION}-on-${FULL_SCALA_VERSION}-for-IDE${ZINC_BUILD_VERSION_SUFFIX}"
+    IDE_M2_REPO="http://typesafe.artifactoryonline.com/typesafe/ide-${SHORT_SCALA_VERSION}"
+    checkNeeded "com.typesafe.sbt" "incremental-compiler" "${FULL_SBT_VERSION}" "${IDE_M2_REPO}"
   fi
 
   SBT_UID=${FULL_SBT_VERSION}
