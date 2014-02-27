@@ -522,12 +522,13 @@ function stepSetFlags () {
 # the flags
   RELEASE=false
   DRY_RUN=true
-  IDE_BUILD=true
+  IDE_BUILD=false
   SCALA_RELEASE=false
   SCALA_VALIDATOR=false
   SCALA_REBUILD=false
   SBT_RELEASE=false
   SBT_REBUILD=false
+  SBT_ALWAYS_BUILD=false
   SIGN_ARTIFACTS=false
   WORKSHEET_PLUGIN=false
   PLAY_PLUGIN=false
@@ -541,30 +542,36 @@ function stepSetFlags () {
     release )
       RELEASE=true
       DRY_RUN=false
+      IDE_BUILD=true
       SIGN_ARTIFACTS=true
       ;;
     release-dryrun )
       RELEASE=true
       DRY_RUN=true
+      IDE_BUILD=true
       SIGN_ARTIFACTS=true
       ;;
     nightly )
       RELEASE=true
       DRY_RUN=true
+      IDE_BUILD=true
       SIGN_ARTIFACTS=false
       ;;
     scala-pr-validator )
       SCALA_VALIDATOR=true
       SBT_REBUILD=true
+      IDE_BUILD=true
       ;;
     scala-pr-rebuild )
       SCALA_VALIDATOR=true
       SCALA_REBUILD=true
       SBT_REBUILD=true
+      IDE_BUILD=true
       ;;
     scala-local-build )
       SCALA_REBUILD=true
       SBT_REBUILD=true
+      IDE_BUILD=true
       ;;
     sbt-nightly )
       RELEASE=true
@@ -922,7 +929,6 @@ function stepZinc () {
   then
     FULL_SBT_VERSION="${SBT_VERSION}-on-${FULL_SCALA_VERSION}-for-IDE-SNAPSHOT"
 
-    # TODO - Only check availability if we're not in sbt nightly mode.
     if ${SBT_ALWAYS_BUILD} || ! checkAvailability "com.typesafe.sbt" "incremental-compiler" "${FULL_SBT_VERSION}"
     then
       info "Building Zinc using dbuild"
