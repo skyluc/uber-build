@@ -553,13 +553,15 @@ function stepSetFlags () {
       RELEASE=true
       DRY_RUN=false
       IDE_BUILD=true
-      SIGN_ARTIFACTS=true
+#      SIGN_ARTIFACTS=true
+      SIGN_ARTIFACTS=false
       ;;
     release-dryrun )
       RELEASE=true
       DRY_RUN=true
       IDE_BUILD=true
-      SIGN_ARTIFACTS=true
+#      SIGN_ARTIFACTS=true
+      SIGN_ARTIFACTS=false
       ;;
     nightly )
       RELEASE=true
@@ -1203,10 +1205,10 @@ function stepScalaIDE () {
 
     cd "${SCALA_IDE_DIR}/org.scala-ide.sdt.update-site"
 
-#    if $SIGN_ARTIFACTS
-#    then
-#      ./plugin-signing.sh "${KEYSTORE_DIR}/typesafe.keystore" typesafe ${KEYSTORE_PASS} ${KEYSTORE_PASS}
-#    fi
+    if $SIGN_ARTIFACTS
+    then
+      ./plugin-signing.sh "${KEYSTORE_DIR}/typesafe.keystore" typesafe ${KEYSTORE_PASS} ${KEYSTORE_PASS}
+    fi
 
     storeCache ${SCALA_IDE_P2_ID} "${SCALA_IDE_DIR}/org.scala-ide.sdt.update-site/target/site"
   fi
