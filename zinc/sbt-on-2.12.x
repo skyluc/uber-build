@@ -89,10 +89,10 @@
       {
         name:   "sbinary",
         extra.sbt-version: "0.13.0",
-        uri:    "git://github.com/skyluc/sbinary.git#"${vars.sbinary-tag}
+        uri:    "git://github.com/harrah/sbinary.git#"${vars.sbinary-tag}
       }, {
         name:   "sbt",
-        uri:    "git://github.com/skyluc/sbt.git#"${vars.sbt-tag}
+        uri:    "git://github.com/sbt/sbt.git#"${vars.sbt-tag}
         extra: {
           sbt-version: ${vars.sbt-build-sbt-version},
           projects: ["compiler-interface",
