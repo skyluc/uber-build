@@ -525,7 +525,7 @@ function stepSetFlags () {
       RELEASE=true
       DRY_RUN=true
       IDE_BUILD=true
-      SIGN_ARTIFACTS=true
+#      SIGN_ARTIFACTS=true
       ;;
     nightly )
       RELEASE=true
